@@ -47,5 +47,13 @@
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
+	},
+	"vars": {
+		"NEXT_PUBLIC_FIREBASE_API_KEY": "AIzaSyDXc5KZ3QHyDOPu4o8kN40bK-GQg_v_z5o",
+		"NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "novavastra-ee441.firebaseapp.com",
+		"NEXT_PUBLIC_FIREBASE_PROJECT_ID": "novavastra-ee441",
+		"NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "novavastra-ee441.firebasestorage.app",
+		"NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "910787922456",
+		"NEXT_PUBLIC_FIREBASE_APP_ID": "1:910787922456:web:9f6c7cc687ba0bd83e516d"
 	}
 }
