@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         amount: plan.amount,
         currency: "INR",
-        receipt: `credits_${user.uid}_${Date.now()}`,
+        receipt: `c_${user.uid.slice(0, 8)}_${Date.now()}`,
         notes: {
           uid: user.uid,
           credits: String(plan.credits),

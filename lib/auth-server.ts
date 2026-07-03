@@ -1,20 +1,18 @@
 import { cookies } from "next/headers";
-import { getFirebaseAuth } from "next-firebase-auth-edge/lib/auth";
+import { SignJWT, jwtVerify } from "jose";
 
-export const authConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID || "",
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
-  privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
-};
+function getSecret(): Uint8Array {
+  const key = process.env.SESSION_SECRET || process.env.FIREBASE_PROJECT_ID || "novavastra-dev";
+  return new TextEncoder().encode(key);
+}
 
-const { verifyIdToken } = getFirebaseAuth({
-  serviceAccount: {
-    projectId: authConfig.projectId,
-    clientEmail: authConfig.clientEmail,
-    privateKey: authConfig.privateKey,
-  },
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-});
+export async function createSessionToken(uid: string): Promise<string> {
+  return new SignJWT({ uid })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("14d")
+    .sign(getSecret());
+}
 
 export async function getServerUser() {
   try {
@@ -23,8 +21,11 @@ export async function getServerUser() {
 
     if (!session) return null;
 
-    const decoded = await verifyIdToken(session);
-    return { uid: decoded.uid };
+    const { payload } = await jwtVerify(session, getSecret());
+
+    if (typeof payload.uid !== "string") return null;
+
+    return { uid: payload.uid };
   } catch {
     return null;
   }

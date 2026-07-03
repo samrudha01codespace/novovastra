@@ -24,6 +24,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const createSession = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+    const idToken = await user.getIdToken();
+    await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -35,6 +47,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
+      await createSession();
       toast.success(isSignUp ? "Account created!" : "Welcome back!");
       router.push("/visualize");
     } catch (error: unknown) {
@@ -51,6 +64,7 @@ export default function LoginPage() {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      await createSession();
       toast.success("Welcome!");
       router.push("/visualize");
     } catch (error: unknown) {

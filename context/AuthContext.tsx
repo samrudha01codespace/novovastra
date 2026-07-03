@@ -14,6 +14,23 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
+async function syncSession(user: User) {
+  try {
+    const idToken = await user.getIdToken();
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+      credentials: "include",
+    });
+    if (!response.ok) {
+      console.error("Session sync failed:", response.status, await response.text());
+    }
+  } catch (error) {
+    console.error("Session sync error:", error);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +40,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      if (user) syncSession(user);
     });
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => syncSession(user), 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
