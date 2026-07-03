@@ -25,8 +25,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    const razorpay = (await import("@/lib/razorpay")).getRazorpay();
-    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    
+    const res = await fetch(`https://api.razorpay.com/v1/orders/${razorpay_order_id}`, {
+      headers: { "Authorization": `Basic ${auth}` }
+    });
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch Razorpay order");
+    }
+    
+    const order = await res.json();
 
     const uid = String(order.notes?.uid ?? "");
     const credits = parseInt(String(order.notes?.credits ?? "0"), 10);

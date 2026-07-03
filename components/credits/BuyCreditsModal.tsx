@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Script from "next/script";
 import {
   Dialog,
   DialogContent,
@@ -158,6 +159,7 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
         <p className="text-xs text-muted-foreground text-center mt-4">
           Powered by Razorpay. Secure payment processing.
         </p>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </DialogContent>
     </Dialog>
   );

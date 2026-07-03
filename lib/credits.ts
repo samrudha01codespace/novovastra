@@ -1,60 +1,74 @@
-import { getAdminDb } from "@/lib/firebase-admin";
+interface KVNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string): Promise<void>;
+}
+
+function getKV(): KVNamespace {
+  const kv = (process.env as any).CREDITS_KV;
+  if (!kv) {
+    console.warn("CREDITS_KV binding not found, falling back to in-memory store for dev");
+    // Simple in-memory fallback for local dev if needed
+    return global._devKV || (global._devKV = {
+      store: new Map<string, string>(),
+      async get(key: string) { return this.store.get(key) || null; },
+      async put(key: string, value: string) { this.store.set(key, value); }
+    });
+  }
+  return kv as KVNamespace;
+}
+
+declare global {
+  var _devKV: any;
+}
 
 const CREDITS_PER_GENERATION = 1;
 
 export async function getUserCredits(uid: string): Promise<number> {
-  const db = getAdminDb();
-  const doc = await db.collection("users").doc(uid).get();
-  return doc.exists ? (doc.data()?.credits ?? 0) : 0;
+  try {
+    const kv = getKV();
+    const data = await kv.get(`credits:${uid}`);
+    return data ? parseInt(data, 10) : 0;
+  } catch (e) {
+    console.error("KV error", e);
+    return 0;
+  }
 }
 
 export async function deductCredit(uid: string, style: string): Promise<{ success: boolean; remaining: number }> {
-  const db = getAdminDb();
-  const userRef = db.collection("users").doc(uid);
+  const kv = getKV();
+  const current = await getUserCredits(uid);
 
-  const result = await db.runTransaction(async (tx) => {
-    const doc = await tx.get(userRef);
-    const current = doc.exists ? (doc.data()?.credits ?? 0) : 0;
+  if (current < CREDITS_PER_GENERATION) {
+    return { success: false, remaining: current };
+  }
 
-    if (current < CREDITS_PER_GENERATION) {
-      return { success: false, remaining: current };
-    }
+  const remaining = current - CREDITS_PER_GENERATION;
+  await kv.put(`credits:${uid}`, remaining.toString());
 
-    tx.set(userRef, { credits: current - CREDITS_PER_GENERATION, updatedAt: new Date() }, { merge: true });
+  try {
+    const txListStr = await kv.get(`tx:${uid}`) || "[]";
+    const txList = JSON.parse(txListStr);
+    txList.unshift({ type: "usage", credits: -CREDITS_PER_GENERATION, style, createdAt: new Date().toISOString() });
+    await kv.put(`tx:${uid}`, JSON.stringify(txList.slice(0, 50))); // Keep last 50
+  } catch (e) {
+    console.error("Failed to log transaction", e);
+  }
 
-    tx.set(userRef.collection("transactions").doc(), {
-      type: "usage",
-      credits: -CREDITS_PER_GENERATION,
-      style,
-      createdAt: new Date(),
-    });
-
-    return { success: true, remaining: current - CREDITS_PER_GENERATION };
-  });
-
-  return result;
+  return { success: true, remaining };
 }
 
 export async function addCredits(uid: string, credits: number, orderId: string, amount: number): Promise<void> {
-  const db = getAdminDb();
-  const userRef = db.collection("users").doc(uid);
+  const kv = getKV();
+  const current = await getUserCredits(uid);
 
-  await db.runTransaction(async (tx) => {
-    const doc = await tx.get(userRef);
-    const current = doc.exists ? (doc.data()?.credits ?? 0) : 0;
+  await kv.put(`credits:${uid}`, (current + credits).toString());
 
-    tx.set(userRef, {
-      credits: current + credits,
-      totalPurchased: (doc.data()?.totalPurchased ?? 0) + credits,
-      updatedAt: new Date(),
-    }, { merge: true });
-
-    tx.set(userRef.collection("transactions").doc(), {
-      type: "purchase",
-      credits,
-      orderId,
-      amount,
-      createdAt: new Date(),
-    });
-  });
+  try {
+    const txListStr = await kv.get(`tx:${uid}`) || "[]";
+    const txList = JSON.parse(txListStr);
+    txList.unshift({ type: "purchase", credits, orderId, amount, createdAt: new Date().toISOString() });
+    await kv.put(`tx:${uid}`, JSON.stringify(txList.slice(0, 50)));
+  } catch (e) {
+    console.error("Failed to log transaction", e);
+  }
 }

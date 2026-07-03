@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRazorpay, CREDIT_PLANS } from "@/lib/razorpay";
+import { CREDIT_PLANS } from "@/lib/razorpay";
 import { getServerUser } from "@/lib/auth-server";
 
 export async function POST(request: NextRequest) {
@@ -15,23 +15,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    const razorpay = getRazorpay();
-    const order = await razorpay.orders.create({
-      amount: plan.amount,
-      currency: "INR",
-      receipt: `credits_${user.uid}_${Date.now()}`,
-      notes: {
-        uid: user.uid,
-        credits: String(plan.credits),
-        planId: plan.id,
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    
+    if (!keyId || !keySecret) {
+      throw new Error("Razorpay credentials missing");
+    }
+
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const orderRes = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Basic ${auth}`,
       },
+      body: JSON.stringify({
+        amount: plan.amount,
+        currency: "INR",
+        receipt: `credits_${user.uid}_${Date.now()}`,
+        notes: {
+          uid: user.uid,
+          credits: String(plan.credits),
+          planId: plan.id,
+        },
+      }),
     });
+
+    if (!orderRes.ok) {
+      const errText = await orderRes.text();
+      console.error("Razorpay order failed:", errText);
+      throw new Error("Razorpay returned an error");
+    }
+
+    const order = await orderRes.json();
 
     return NextResponse.json({
       orderId: order.id,
       amount: plan.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId,
     });
   } catch (error) {
     console.error("Checkout error:", error);

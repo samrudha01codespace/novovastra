@@ -7,11 +7,17 @@
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
-	"minify": true,
+	"minify": false,
 	"routes": [
 		{
 			"pattern": "novavastra.samrudhakshirsagar.tech/*",
 			"zone_name": "samrudhakshirsagar.tech"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "CREDITS_KV",
+			"id": "204124d6664c43e9bf8cbed43fe2e252"
 		}
 	],
 	"assets": {
