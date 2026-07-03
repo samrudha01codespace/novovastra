@@ -10,10 +10,10 @@ import { DesignGrid } from "@/components/visualize/DesignGrid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
-import { InsufficientCredits } from "@/components/credits/InsufficientCredits";
 import { useAuth } from "@/hooks/useAuth";
 import { STYLE_PROMPTS, type StyleKey } from "@/lib/ai";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { CREDIT_PLANS } from "@/lib/razorpay";
+import { ArrowRight, Sparkles, Coins, Lock, Check } from "lucide-react";
 import { toast } from "sonner";
 
 type Stage = "upload" | "style" | "generating" | "results";
@@ -98,7 +98,7 @@ export default function VisualizePage() {
       return;
     }
 
-    if (credits !== null && credits < selectedStyles.length) {
+    if (credits === null || credits < selectedStyles.length) {
       setBuyOpen(true);
       return;
     }
@@ -180,6 +180,9 @@ export default function VisualizePage() {
     setStage("style");
   };
 
+  const hasEnoughCredits = credits !== null && credits >= selectedStyles.length;
+  const cost = selectedStyles.length;
+
   return (
     <>
       <Navbar />
@@ -214,75 +217,134 @@ export default function VisualizePage() {
           )}
 
           {stage === "style" && (
-            <Card className="glass-card border-0">
-              <CardHeader>
-                <CardTitle className="font-[var(--font-heading)] text-xl flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-gold" />
-                  Choose Your Styles
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {preview && (
-                  <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={preview}
-                      alt="Uploaded saree"
-                      className="w-full h-full object-cover"
-                    />
+            <div className="space-y-6">
+              <Card className="glass-card border-0">
+                <CardHeader>
+                  <CardTitle className="font-[var(--font-heading)] text-xl flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-gold" />
+                    Choose Your Styles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {preview && (
+                    <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
+                      <img
+                        src={preview}
+                        alt="Uploaded saree"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {styleOptions.map((style) => (
+                      <button
+                        key={style.key}
+                        onClick={() => toggleStyle(style.key)}
+                        className={`p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                          selectedStyles.includes(style.key)
+                            ? "border-gold bg-gold/5"
+                            : "border-border hover:border-gold/30"
+                        }`}
+                      >
+                        <div className="font-medium text-sm">{style.label}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {style.description}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                )}
 
-                {credits !== null && credits === 0 && (
-                  <InsufficientCredits
-                    required={selectedStyles.length}
-                    current={credits}
-                    onBuyCredits={() => setBuyOpen(true)}
-                  />
-                )}
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {styleOptions.map((style) => (
-                    <button
-                      key={style.key}
-                      onClick={() => toggleStyle(style.key)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                        selectedStyles.includes(style.key)
-                          ? "border-gold bg-gold/5"
-                          : "border-border hover:border-gold/30"
-                      }`}
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStage("upload")}
+                      className="cursor-pointer"
                     >
-                      <div className="font-medium text-sm">{style.label}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {style.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      Back
+                    </Button>
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={selectedStyles.length === 0}
+                      className="flex-1 gold-gradient text-white cursor-pointer"
+                    >
+                      {hasEnoughCredits ? (
+                        <>
+                          Generate {selectedStyles.length} Design{selectedStyles.length > 1 ? "s" : ""}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          Buy Credits to Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setStage("upload")}
-                    className="cursor-pointer"
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={selectedStyles.length === 0}
-                    className="flex-1 gold-gradient text-white cursor-pointer"
-                  >
-                    {credits !== null && (
-                      <span className="mr-2 text-xs opacity-80">
-                        ({credits} credit{credits !== 1 ? "s" : ""})
-                      </span>
-                    )}
-                    Generate Designs ({selectedStyles.length})
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Pricing Card */}
+              <Card className="glass-card border-0">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
+                      <Coins className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-[var(--font-heading)] text-lg font-semibold">
+                        Pay Per Generation
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Each style costs 1 credit
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {CREDIT_PLANS.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className={`p-3 rounded-xl border text-center ${
+                          cost <= plan.credits
+                            ? "border-gold/30 bg-gold/5"
+                            : "border-border"
+                        }`}
+                      >
+                        <div className="font-bold text-lg">{plan.credits}</div>
+                        <div className="text-xs text-muted-foreground">credits</div>
+                        <div className="font-semibold text-gold mt-1">{plan.price}</div>
+                        {plan.badge && (
+                          <div className="text-xs text-gold mt-1">{plan.badge}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {!user ? (
+                    <Button
+                      onClick={() => router.push("/login")}
+                      className="w-full gold-gradient text-white cursor-pointer"
+                    >
+                      Sign In to Buy Credits
+                    </Button>
+                  ) : !hasEnoughCredits ? (
+                    <Button
+                      onClick={() => setBuyOpen(true)}
+                      className="w-full gold-gradient text-white cursor-pointer"
+                    >
+                      <Coins className="w-4 h-4 mr-2" />
+                      Buy {cost} Credit{cost > 1 ? "s" : ""} — {CREDIT_PLANS.find(p => p.credits >= cost)?.price || "₹2.99"}
+                    </Button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 text-green-600 text-sm font-medium">
+                      <Check className="w-4 h-4" />
+                      You have {credits} credits — ready to generate!
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {stage === "generating" && (
