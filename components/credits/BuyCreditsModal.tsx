@@ -51,11 +51,17 @@ interface RazorpayResponse {
 
 export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
   const [loading, setLoading] = useState<CreditPlanId | null>(null);
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
 
   const handleBuy = async (planId: CreditPlanId) => {
     if (!user) {
       toast.error("Please sign in first");
+      return;
+    }
+
+    const sessionReady = await refreshSession();
+    if (!sessionReady) {
+      toast.error("Session expired. Please sign in again.");
       return;
     }
 
@@ -69,6 +75,11 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
       });
 
       const data = await res.json();
+
+      if (res.status === 401) {
+        throw new Error("Please sign in again to continue checkout");
+      }
+
       if (!res.ok) throw new Error(data.error);
 
       const options: RazorpayOptions = {

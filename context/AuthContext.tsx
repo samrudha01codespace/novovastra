@@ -7,14 +7,16 @@ import { getAuth } from "@/lib/firebase";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  refreshSession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  refreshSession: async () => false,
 });
 
-async function syncSession(user: User) {
+async function syncSession(user: User): Promise<boolean> {
   try {
     const idToken = await user.getIdToken();
     const response = await fetch("/api/auth/session", {
@@ -25,9 +27,12 @@ async function syncSession(user: User) {
     });
     if (!response.ok) {
       console.error("Session sync failed:", response.status, await response.text());
+      return false;
     }
+    return true;
   } catch (error) {
     console.error("Session sync error:", error);
+    return false;
   }
 }
 
@@ -35,12 +40,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshSession = async (): Promise<boolean> => {
+    if (!user) return false;
+    return syncSession(user);
+  };
+
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
+      setUser(nextUser);
+
+      if (nextUser) {
+        await syncSession(nextUser);
+      }
+
       setLoading(false);
-      if (user) syncSession(user);
     });
 
     return unsubscribe;
@@ -53,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

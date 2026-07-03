@@ -45,7 +45,7 @@ export default function VisualizePage() {
   const [credits, setCredits] = useState<number | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
 
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -55,7 +55,18 @@ export default function VisualizePage() {
 
     const load = async () => {
       try {
-        const res = await fetch("/api/credits", { signal: controller.signal });
+        const sessionReady = await refreshSession();
+        if (!sessionReady) return;
+
+        let res = await fetch("/api/credits", { signal: controller.signal });
+
+        if (res.status === 401) {
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            res = await fetch("/api/credits", { signal: controller.signal });
+          }
+        }
+
         if (res.ok) {
           const data = await res.json();
           setCredits(data.credits);

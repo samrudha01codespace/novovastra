@@ -57,6 +57,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Checkout error:", error);
+
+    if (error instanceof Response) {
+      return error;
+    }
+
     return NextResponse.json(
       { error: "Failed to create order" },
       { status: 500 }
