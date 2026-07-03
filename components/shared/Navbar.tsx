@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CreditBadge } from "@/components/credits/CreditBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getAuth } from "@/lib/firebase";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -23,7 +23,7 @@ export function Navbar() {
   const { user, loading } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut(auth);
+    await signOut(getAuth());
   };
 
   return (
