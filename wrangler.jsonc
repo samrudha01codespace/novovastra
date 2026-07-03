@@ -9,7 +9,7 @@
 	],
 	"routes": [
 		{
-			"pattern": "novavastra.samrudhakshirsagar.tech",
+			"pattern": "novavastra.samrudhakshirsagar.tech/*",
 			"zone_name": "samrudhakshirsagar.tech"
 		}
 	],
@@ -22,7 +22,7 @@
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "novovastra"
+			"service": "novavastra"
 		}
 	],
 	"r2_buckets": [
