@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRTDB } from "@/lib/firebase";
-import { ref, get, update } from "firebase/database";
+
+const RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +13,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getRTDB();
-    const paymentRef = ref(db, `payments/${token}`);
-    const snapshot = await get(paymentRef);
+    if (!RTDB_URL) {
+      return NextResponse.json(
+        { error: "Firebase RTDB not configured" },
+        { status: 500 }
+      );
+    }
 
-    if (!snapshot.exists()) {
+    const snapRes = await fetch(`${RTDB_URL}/payments/${token}.json`);
+    const payment = await snapRes.json();
+
+    if (!payment) {
       return NextResponse.json(
         { error: "Payment not found" },
         { status: 404 }
       );
     }
-
-    const payment = snapshot.val();
 
     if (payment.status === "paid") {
       return NextResponse.json(
@@ -33,20 +37,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update payment status
-    await update(paymentRef, {
-      status: "paid",
-      razorpayOrderId: razorpayOrderId || null,
-      razorpayPaymentId: razorpayPaymentId || null,
-      paidAt: new Date().toISOString(),
+    await fetch(`${RTDB_URL}/payments/${token}.json`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "paid",
+        razorpayOrderId: razorpayOrderId || null,
+        razorpayPaymentId: razorpayPaymentId || null,
+        paidAt: new Date().toISOString(),
+      }),
     });
 
-    // Update inquiry status if linked
     if (payment.inquiryId) {
-      const inquiryRef = ref(db, `inquiries/${payment.inquiryId}`);
-      await update(inquiryRef, {
-        status: "paid",
-        paymentToken: token,
+      await fetch(`${RTDB_URL}/inquiries/${payment.inquiryId}.json`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "paid",
+          paymentToken: token,
+        }),
       });
     }
 

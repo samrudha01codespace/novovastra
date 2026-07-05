@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRTDB } from "@/lib/firebase";
-import { ref, set, get } from "firebase/database";
 import { nanoid } from "nanoid";
+
+const RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,19 +14,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getRTDB();
+    if (!RTDB_URL) {
+      return NextResponse.json(
+        { error: "Firebase RTDB not configured" },
+        { status: 500 }
+      );
+    }
 
     // Verify inquiry exists
-    const inquiryRef = ref(db, `inquiries/${inquiryId}`);
-    const inquirySnap = await get(inquiryRef);
-    if (!inquirySnap.exists()) {
+    const inquirySnapRes = await fetch(`${RTDB_URL}/inquiries/${inquiryId}.json`);
+    const inquiry = await inquirySnapRes.json();
+
+    if (!inquiry) {
       return NextResponse.json(
         { error: "Inquiry not found" },
         { status: 404 }
       );
     }
-
-    const inquiry = inquirySnap.val();
 
     // Generate token
     const token = nanoid(32);
@@ -34,19 +38,21 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
     // Save payment token to RTDB
-    const paymentRef = ref(db, `payments/${token}`);
-    await set(paymentRef, {
-      token,
-      inquiryId,
-      amount: Number(amount),
-      status: "pending",
-      customerName: inquiry.name,
-      customerPhone: inquiry.phone,
-      style: inquiry.style,
-      sareeImageUrl: inquiry.sareeImageUrl,
-      designImageUrl: inquiry.designImageUrl,
-      createdAt: now.toISOString(),
-      expiresAt: expiresAt.toISOString(),
+    await fetch(`${RTDB_URL}/payments/${token}.json`, {
+      method: "PUT",
+      body: JSON.stringify({
+        token,
+        inquiryId,
+        amount: Number(amount),
+        status: "pending",
+        customerName: inquiry.name,
+        customerPhone: inquiry.phone,
+        style: inquiry.style,
+        sareeImageUrl: inquiry.sareeImageUrl,
+        designImageUrl: inquiry.designImageUrl,
+        createdAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+      }),
     });
 
     return NextResponse.json({

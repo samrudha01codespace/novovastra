@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRTDB } from "@/lib/firebase";
-import { ref, get, update } from "firebase/database";
+
+const RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
 export async function GET(
   _request: NextRequest,
@@ -8,22 +8,30 @@ export async function GET(
 ) {
   try {
     const { token } = await params;
-    const db = getRTDB();
-    const paymentRef = ref(db, `payments/${token}`);
-    const snapshot = await get(paymentRef);
 
-    if (!snapshot.exists()) {
+    if (!RTDB_URL) {
+      return NextResponse.json(
+        { error: "Firebase RTDB not configured" },
+        { status: 500 }
+      );
+    }
+
+    const res = await fetch(`${RTDB_URL}/payments/${token}.json`);
+    const payment = await res.json();
+
+    if (!payment) {
       return NextResponse.json(
         { error: "Invalid payment link" },
         { status: 404 }
       );
     }
 
-    const payment = snapshot.val();
-
     // Check if expired
     if (new Date(payment.expiresAt) < new Date()) {
-      await update(paymentRef, { status: "expired" });
+      await fetch(`${RTDB_URL}/payments/${token}/status.json`, {
+        method: "PUT",
+        body: JSON.stringify("expired"),
+      });
       return NextResponse.json(
         { error: "This payment link has expired", expired: true },
         { status: 410 }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2Client } from "@/lib/r2-client";
-import { getRTDB } from "@/lib/firebase";
-import { ref, push, set } from "firebase/database";
 import { nanoid } from "nanoid";
+
+const RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +14,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      );
+    }
+
+    if (!RTDB_URL) {
+      return NextResponse.json(
+        { error: "Firebase RTDB not configured" },
+        { status: 500 }
       );
     }
 
@@ -40,28 +47,28 @@ export async function POST(request: NextRequest) {
     // Build design image URL
     const designImageUrl = r2BaseUrl ? `${r2BaseUrl}/designs/${style}.jpg` : `/designs/${style}.jpg`;
 
-    // Save inquiry to RTDB with push
-    const db = getRTDB();
-    const inquiriesRef = ref(db, "inquiries");
-    const newRef = push(inquiriesRef);
-
-    await set(newRef, {
-      id: newRef.key,
-      name,
-      phone,
-      whatsapp: whatsapp || phone,
-      notes: notes || "",
-      style,
-      measurements: measurements || [],
-      sareeImageUrl,
-      designImageUrl,
-      status: "new",
-      createdAt: new Date().toISOString(),
+    // Generate push key using RTDB REST API
+    const pushRes = await fetch(`${RTDB_URL}/inquiries.json`, {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        phone,
+        whatsapp: whatsapp || phone,
+        notes: notes || "",
+        style,
+        measurements: measurements || [],
+        sareeImageUrl,
+        designImageUrl,
+        status: "new",
+        createdAt: new Date().toISOString(),
+      }),
     });
+
+    const { name: inquiryId } = await pushRes.json();
 
     return NextResponse.json({
       success: true,
-      inquiryId: newRef.key,
+      inquiryId,
       sareeImageUrl,
     });
   } catch (error) {

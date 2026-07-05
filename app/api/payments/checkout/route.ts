@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRTDB } from "@/lib/firebase";
-import { ref, get } from "firebase/database";
+
+const RTDB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,15 +10,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
     }
 
-    const db = getRTDB();
-    const paymentRef = ref(db, `payments/${token}`);
-    const snapshot = await get(paymentRef);
-
-    if (!snapshot.exists()) {
-      return NextResponse.json({ error: "Invalid payment link" }, { status: 404 });
+    if (!RTDB_URL) {
+      return NextResponse.json(
+        { error: "Firebase RTDB not configured" },
+        { status: 500 }
+      );
     }
 
-    const payment = snapshot.val();
+    const snapRes = await fetch(`${RTDB_URL}/payments/${token}.json`);
+    const payment = await snapRes.json();
+
+    if (!payment) {
+      return NextResponse.json({ error: "Invalid payment link" }, { status: 404 });
+    }
 
     if (payment.status === "paid") {
       return NextResponse.json({ error: "Already paid" }, { status: 409 });
