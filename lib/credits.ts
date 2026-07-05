@@ -1,55 +1,53 @@
-interface KVNamespace {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string): Promise<void>;
-}
+import { getRTDB } from "./firebase";
+import { ref, get, set, runTransaction } from "firebase/database";
 
-function getKV(): KVNamespace {
-  const kv = (process.env as any).CREDITS_KV;
-  if (!kv) {
-    console.warn("CREDITS_KV binding not found, falling back to in-memory store for dev");
-    // Simple in-memory fallback for local dev if needed
-    return global._devKV || (global._devKV = {
-      store: new Map<string, string>(),
-      async get(key: string) { return this.store.get(key) || null; },
-      async put(key: string, value: string) { this.store.set(key, value); }
-    });
-  }
-  return kv as KVNamespace;
-}
+export const MODEL_CREDITS: Record<string, number> = {
+  imagen_fast: 1,
+  nano_banana: 2,
+  nano_banana_pro: 4,
+};
 
-declare global {
-  var _devKV: any;
+export function getCreditsForModel(model: string): number {
+  return MODEL_CREDITS[model] ?? 2;
 }
-
-const CREDITS_PER_GENERATION = 1;
 
 export async function getUserCredits(uid: string): Promise<number> {
   try {
-    const kv = getKV();
-    const data = await kv.get(`credits:${uid}`);
-    return data ? parseInt(data, 10) : 0;
+    const db = getRTDB();
+    const snapshot = await get(ref(db, `users/${uid}/credits`));
+    return snapshot.exists() ? snapshot.val() : 0;
   } catch (e) {
-    console.error("KV error", e);
+    console.error("RTDB read error", e);
     return 0;
   }
 }
 
-export async function deductCredit(uid: string, style: string): Promise<{ success: boolean; remaining: number }> {
-  const kv = getKV();
-  const current = await getUserCredits(uid);
+export async function deductCredit(uid: string, style: string, model: string = "nano_banana"): Promise<{ success: boolean; remaining: number }> {
+  const db = getRTDB();
+  const creditsRef = ref(db, `users/${uid}/credits`);
+  const creditsNeeded = getCreditsForModel(model);
 
-  if (current < CREDITS_PER_GENERATION) {
-    return { success: false, remaining: current };
+  const result = await runTransaction(creditsRef, (currentCredits) => {
+    const current = currentCredits || 0;
+    if (current < creditsNeeded) {
+      return current;
+    }
+    return current - creditsNeeded;
+  });
+
+  if (!result.committed) {
+    return { success: false, remaining: result.snapshot.val() || 0 };
   }
 
-  const remaining = current - CREDITS_PER_GENERATION;
-  await kv.put(`credits:${uid}`, remaining.toString());
+  const remaining = result.snapshot.val() || 0;
 
   try {
-    const txListStr = await kv.get(`tx:${uid}`) || "[]";
-    const txList = JSON.parse(txListStr);
-    txList.unshift({ type: "usage", credits: -CREDITS_PER_GENERATION, style, createdAt: new Date().toISOString() });
-    await kv.put(`tx:${uid}`, JSON.stringify(txList.slice(0, 50))); // Keep last 50
+    const txRef = ref(db, `users/${uid}/transactions`);
+    const txSnapshot = await get(txRef);
+    const txList = txSnapshot.exists() ? txSnapshot.val() : [];
+    const newTx = { type: "usage", credits: -creditsNeeded, style, model, createdAt: new Date().toISOString() };
+    const updatedTx = [newTx, ...txList].slice(0, 50);
+    await set(txRef, updatedTx);
   } catch (e) {
     console.error("Failed to log transaction", e);
   }
@@ -58,16 +56,20 @@ export async function deductCredit(uid: string, style: string): Promise<{ succes
 }
 
 export async function addCredits(uid: string, credits: number, orderId: string, amount: number): Promise<void> {
-  const kv = getKV();
-  const current = await getUserCredits(uid);
+  const db = getRTDB();
+  const creditsRef = ref(db, `users/${uid}/credits`);
 
-  await kv.put(`credits:${uid}`, (current + credits).toString());
+  await runTransaction(creditsRef, (currentCredits) => {
+    return (currentCredits || 0) + credits;
+  });
 
   try {
-    const txListStr = await kv.get(`tx:${uid}`) || "[]";
-    const txList = JSON.parse(txListStr);
-    txList.unshift({ type: "purchase", credits, orderId, amount, createdAt: new Date().toISOString() });
-    await kv.put(`tx:${uid}`, JSON.stringify(txList.slice(0, 50)));
+    const txRef = ref(db, `users/${uid}/transactions`);
+    const txSnapshot = await get(txRef);
+    const txList = txSnapshot.exists() ? txSnapshot.val() : [];
+    const newTx = { type: "purchase", credits, orderId, amount, createdAt: new Date().toISOString() };
+    const updatedTx = [newTx, ...txList].slice(0, 50);
+    await set(txRef, updatedTx);
   } catch (e) {
     console.error("Failed to log transaction", e);
   }

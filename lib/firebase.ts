@@ -1,10 +1,12 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth as getFirebaseAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getDatabase, type Database } from "firebase/database";
 
 let app: FirebaseApp | null = null;
 let _auth: Auth | null = null;
 let _db: Firestore | null = null;
+let _rtdb: Database | null = null;
 
 function getApp(): FirebaseApp {
   if (app) return app;
@@ -41,6 +43,14 @@ export function getDb(): Firestore {
   if (_db) return _db;
   _db = getFirestore(getApp());
   return _db;
+}
+
+export function getRTDB(): Database {
+  if (_rtdb) return _rtdb;
+  const app = getApp();
+  const databaseUrl = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+  _rtdb = getDatabase(app, databaseUrl);
+  return _rtdb;
 }
 
 export default getApp;

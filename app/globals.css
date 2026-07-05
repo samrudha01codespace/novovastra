@@ -56,82 +56,83 @@
 }
 
 :root {
-  --background: #FAFAF9;
-  --foreground: #0C0A09;
+  /* Luxury Wine + Warm Gold Palette */
+  --background: #FDF8F3;
+  --foreground: #3B1520;
   --card: #FFFFFF;
-  --card-foreground: #0C0A09;
+  --card-foreground: #3B1520;
   --popover: #FFFFFF;
-  --popover-foreground: #0C0A09;
-  --primary: #1C1917;
-  --primary-foreground: #FFFFFF;
-  --secondary: #44403C;
-  --secondary-foreground: #FFFFFF;
-  --muted: #F5F5F4;
-  --muted-foreground: #78716C;
-  --accent: #A16207;
-  --accent-foreground: #FFFFFF;
-  --destructive: #DC2626;
-  --border: #D6D3D1;
-  --input: #E7E5E4;
-  --ring: #A16207;
-  --gold: #A16207;
-  --gold-light: #D4A017;
-  --gold-dark: #854D0E;
-  --stone-color: #1C1917;
-  --stone-light: #44403C;
-  --chart-1: #A16207;
-  --chart-2: #1C1917;
-  --chart-3: #44403C;
-  --chart-4: #78716C;
-  --chart-5: #D6D3D1;
-  --radius: 0.625rem;
-  --sidebar: #FAFAF9;
-  --sidebar-foreground: #0C0A09;
-  --sidebar-primary: #1C1917;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5F5F4;
-  --sidebar-accent-foreground: #0C0A09;
-  --sidebar-border: #D6D3D1;
-  --sidebar-ring: #A16207;
+  --popover-foreground: #3B1520;
+  --primary: #722F37;
+  --primary-foreground: #FDF8F3;
+  --secondary: #8B3A42;
+  --secondary-foreground: #FDF8F3;
+  --muted: #F5EDE6;
+  --muted-foreground: #7A6B63;
+  --accent: #C9A96E;
+  --accent-foreground: #3B1520;
+  --destructive: #B91C1C;
+  --border: #E8DDD4;
+  --input: #E8DDD4;
+  --ring: #722F37;
+  --gold: #C9A96E;
+  --gold-light: #D4B97A;
+  --gold-dark: #A88B4A;
+  --stone-color: #722F37;
+  --stone-light: #8B3A42;
+  --chart-1: #722F37;
+  --chart-2: #8B3A42;
+  --chart-3: #C9A96E;
+  --chart-4: #D4B97A;
+  --chart-5: #F5EDE6;
+  --radius: 0.75rem;
+  --sidebar: #FDF8F3;
+  --sidebar-foreground: #3B1520;
+  --sidebar-primary: #722F37;
+  --sidebar-primary-foreground: #FDF8F3;
+  --sidebar-accent: #F5EDE6;
+  --sidebar-accent-foreground: #3B1520;
+  --sidebar-border: #E8DDD4;
+  --sidebar-ring: #722F37;
 }
 
 .dark {
-  --background: #0C0A09;
-  --foreground: #FAFAF9;
-  --card: #1C1917;
-  --card-foreground: #FAFAF9;
-  --popover: #1C1917;
-  --popover-foreground: #FAFAF9;
-  --primary: #FAFAF9;
-  --primary-foreground: #0C0A09;
-  --secondary: #44403C;
-  --secondary-foreground: #FAFAF9;
-  --muted: #292524;
-  --muted-foreground: #A8A29E;
-  --accent: #D4A017;
-  --accent-foreground: #0C0A09;
+  --background: #1A0A0E;
+  --foreground: #FDF8F3;
+  --card: #2A1218;
+  --card-foreground: #FDF8F3;
+  --popover: #2A1218;
+  --popover-foreground: #FDF8F3;
+  --primary: #C9A96E;
+  --primary-foreground: #1A0A0E;
+  --secondary: #3B1520;
+  --secondary-foreground: #FDF8F3;
+  --muted: #3B1520;
+  --muted-foreground: #B8A99E;
+  --accent: #C9A96E;
+  --accent-foreground: #1A0A0E;
   --destructive: #EF4444;
-  --border: #292524;
-  --input: #292524;
-  --ring: #D4A017;
-  --gold: #D4A017;
-  --gold-light: #EAB308;
-  --gold-dark: #A16207;
-  --stone-color: #FAFAF9;
-  --stone-light: #D6D3D1;
-  --chart-1: #D4A017;
-  --chart-2: #FAFAF9;
-  --chart-3: #A8A29E;
-  --chart-4: #78716C;
-  --chart-5: #44403C;
-  --sidebar: #0C0A09;
-  --sidebar-foreground: #FAFAF9;
-  --sidebar-primary: #D4A017;
-  --sidebar-primary-foreground: #0C0A09;
-  --sidebar-accent: #292524;
-  --sidebar-accent-foreground: #FAFAF9;
-  --sidebar-border: #292524;
-  --sidebar-ring: #D4A017;
+  --border: #4A2030;
+  --input: #4A2030;
+  --ring: #C9A96E;
+  --gold: #C9A96E;
+  --gold-light: #D4B97A;
+  --gold-dark: #A88B4A;
+  --stone-color: #FDF8F3;
+  --stone-light: #B8A99E;
+  --chart-1: #C9A96E;
+  --chart-2: #3B1520;
+  --chart-3: #D4B97A;
+  --chart-4: #A88B4A;
+  --chart-5: #4A2030;
+  --sidebar: #1A0A0E;
+  --sidebar-foreground: #FDF8F3;
+  --sidebar-primary: #C9A96E;
+  --sidebar-primary-foreground: #1A0A0E;
+  --sidebar-accent: #3B1520;
+  --sidebar-accent-foreground: #FDF8F3;
+  --sidebar-border: #4A2030;
+  --sidebar-ring: #C9A96E;
 }
 
 @layer base {
@@ -144,44 +145,70 @@
   html {
     @apply font-sans scroll-smooth;
   }
+
+  /* Focus states for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(253, 248, 243, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(200, 180, 160, 0.3);
   }
 
   .dark .glass {
-    background: rgba(28, 25, 23, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(26, 10, 14, 0.7);
+    border: 1px solid rgba(74, 32, 48, 0.3);
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(253, 248, 243, 0.6);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(200, 180, 160, 0.4);
+    box-shadow: 0 8px 32px rgba(114, 47, 55, 0.06);
+    transition: all 200ms ease-out;
+  }
+
+  .glass-card:hover {
+    box-shadow: 0 12px 40px rgba(114, 47, 55, 0.1);
+    transform: translateY(-1px);
   }
 
   .dark .glass-card {
-    background: rgba(28, 25, 23, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(42, 18, 24, 0.6);
+    border: 1px solid rgba(74, 32, 48, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
+  .dark .glass-card:hover {
+    box-shadow: 0 12px 40px rgba(201, 169, 110, 0.05);
+  }
+
   .text-gradient {
-    background: linear-gradient(135deg, #A16207, #D4A017);
+    background: linear-gradient(135deg, #722F37, #C9A96E);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gold-gradient {
-    background: linear-gradient(135deg, #A16207, #D4A017);
+    background: linear-gradient(135deg, #C9A96E, #D4B97A);
   }
 
   .animate-float {
@@ -194,6 +221,26 @@
 
   .animate-shimmer {
     animation: shimmer 2s linear infinite;
+  }
+
+  /* Skeleton loading utility */
+  .skeleton {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Smooth transitions for interactive elements */
+  .transition-smooth {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Scale on press for tappable elements */
+  .active-scale {
+    transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .active-scale:active {
+    transform: scale(0.97);
   }
 }
 

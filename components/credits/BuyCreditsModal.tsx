@@ -126,9 +126,9 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
           <DialogTitle className="font-[var(--font-heading)] text-xl">
             Buy Credits
           </DialogTitle>
-          <DialogDescription>
-            Each credit generates 1 dress design. Choose a plan below.
-          </DialogDescription>
+        <DialogDescription>
+          Credits are used per generation. 1-4 credits per design depending on AI model quality.
+        </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 mt-4">
@@ -146,7 +146,7 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
                 <div className="text-left">
                   <div className="font-medium">{plan.label}</div>
                   <div className="text-sm text-muted-foreground">
-                    {plan.credits === 1 ? "₹2.99 each" : `₹${(plan.amount / plan.credits / 100).toFixed(2)} each`}
+                    ₹{(plan.amount / plan.credits / 100).toFixed(2)} each
                   </div>
                 </div>
               </div>

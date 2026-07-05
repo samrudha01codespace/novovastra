@@ -1,83 +1,135 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Coins } from "lucide-react";
+import { Check, Sparkles, Zap, Crown } from "lucide-react";
 import { CREDIT_PLANS } from "@/lib/razorpay";
+import { AI_MODELS } from "@/lib/ai";
+import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
+
+const MODEL_ICONS = {
+  imagen_fast: Zap,
+  nano_banana: Sparkles,
+  nano_banana_pro: Crown,
+};
 
 export function Pricing() {
+  const [buyOpen, setBuyOpen] = useState(false);
+
   return (
     <section id="pricing" className="py-24 md:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="text-center mb-16">
+          <Badge variant="outline" className="mb-4">Pricing</Badge>
           <h2 className="font-[var(--font-heading)] text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Simple <span className="text-gradient">Pricing</span>
+            Choose Your <span className="text-gradient">AI Model</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Pay per generation. No subscriptions, no hidden fees. Each credit transforms your saree into one modern design.
+            Different models for different needs. Pick the quality level that fits your vision.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          {CREDIT_PLANS.map((plan, i) => (
-            <Card
+        {/* Model Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
+          {(Object.entries(AI_MODELS) as [string, typeof AI_MODELS[keyof typeof AI_MODELS]][]).map(([key, model], i) => {
+            const Icon = MODEL_ICONS[key as keyof typeof MODEL_ICONS] || Sparkles;
+            const isPopular = i === 1;
+
+            return (
+              <div
+                key={key}
+                className={`relative rounded-2xl p-[1px] ${
+                  isPopular ? "gold-gradient" : "bg-border"
+                }`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="gold-gradient text-white text-xs px-3">Most Popular</Badge>
+                  </div>
+                )}
+                <div className={`glass-card rounded-2xl p-6 h-full ${isPopular ? "ring-1 ring-gold/20" : ""}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      isPopular ? "gold-gradient" : "bg-muted"
+                    }`}>
+                      <Icon className={`w-5 h-5 ${isPopular ? "text-white" : "text-gold"}`} />
+                    </div>
+                    <div>
+                      <h3 className="font-[var(--font-heading)] text-lg font-bold">{model.name}</h3>
+                      <p className="text-xs text-muted-foreground">{model.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold text-gold">{model.credits}</span>
+                      <span className="text-sm text-muted-foreground">credit{model.credits > 1 ? "s" : ""}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">per generation</p>
+                  </div>
+
+                  <ul className="space-y-2.5 mb-6">
+                    {[
+                      "Photorealistic output",
+                      key === "nano_banana_pro" ? "4K resolution" : "1K resolution",
+                      key === "imagen_fast" ? "Fastest generation" : "Standard speed",
+                    ].map((feature) => (
+                      <li key={feature} className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-gold shrink-0" />
+                        <span className="text-sm text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    onClick={() => setBuyOpen(true)}
+                    className={`w-full cursor-pointer ${isPopular ? "gold-gradient text-white" : ""}`}
+                    variant={isPopular ? "default" : "outline"}
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Credit Packs */}
+        <div className="text-center mb-8">
+          <h3 className="font-[var(--font-heading)] text-xl font-bold mb-2">Credit Packs</h3>
+          <p className="text-sm text-muted-foreground">Buy credits once, use them anytime. No expiry.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          {CREDIT_PLANS.map((plan) => (
+            <button
               key={plan.id}
-              className={`glass-card border-0 relative ${
-                i === 1 ? "ring-2 ring-gold/50 scale-105" : ""
-              }`}
+              onClick={() => setBuyOpen(true)}
+              className="glass-card rounded-xl p-5 text-left hover:shadow-lg transition-all duration-200 cursor-pointer group"
             >
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="gold-gradient text-white">{plan.badge}</Badge>
-                </div>
-              )}
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto mb-6">
-                  <Coins className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="font-[var(--font-heading)] text-2xl font-bold mb-2">
-                  {plan.label}
-                </h3>
-                <div className="text-3xl font-bold text-gold mb-2">{plan.price}</div>
-                <p className="text-sm text-muted-foreground mb-6">
-                  ₹{(plan.amount / plan.credits / 100).toFixed(2)} per credit
-                </p>
-                <ul className="space-y-3 text-left mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-gold" />
-                    <span className="text-sm">{plan.credits} AI generation{plan.credits > 1 ? "s" : ""}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-gold" />
-                    <span className="text-sm">6 style options</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-gold" />
-                    <span className="text-sm">High-resolution output</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-gold" />
-                    <span className="text-sm">Download & share</span>
-                  </li>
-                </ul>
-                <Button
-                  className={`w-full cursor-pointer ${
-                    i === 1 ? "gold-gradient text-white" : ""
-                  }`}
-                  variant={i === 1 ? "default" : "outline"}
-                >
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-[var(--font-heading)] text-lg font-bold">{plan.label}</span>
+                {plan.badge && (
+                  <Badge variant="secondary" className="text-xs">{plan.badge}</Badge>
+                )}
+              </div>
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-2xl font-bold text-gold">{plan.price}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ₹{(plan.amount / plan.credits / 100).toFixed(2)} per credit
+              </p>
+            </button>
           ))}
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-8">
+        <p className="text-center text-xs text-muted-foreground mt-8">
           Payments powered by Razorpay. Secure checkout.
         </p>
       </div>
+      <BuyCreditsModal open={buyOpen} onOpenChange={setBuyOpen} />
     </section>
   );
 }

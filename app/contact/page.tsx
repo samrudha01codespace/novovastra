@@ -6,8 +6,10 @@ import { Footer } from "@/components/shared/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+
+const WHATSAPP_NUMBER = "919558397481";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -22,9 +24,8 @@ export default function ContactPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate form submission
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("Message sent! We will get back to you within 24 hours.");
+    toast.success("Message sent! We will call you back shortly.");
     setFormData({ name: "", email: "", phone: "", message: "" });
     setLoading(false);
   };
@@ -49,26 +50,49 @@ export default function ContactPage() {
               <Card className="glass-card border-0">
                 <CardContent className="p-6 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5 text-gold" />
+                    <Phone className="w-5 h-5 text-gold" />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Email</h3>
+                    <h3 className="font-medium mb-1">Phone</h3>
                     <p className="text-sm text-muted-foreground">
-                      hello@novovastra.com
+                      +91 95583 97481
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="glass-card border-0">
+                <CardContent className="p-6">
+                  <a
+                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-4 group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#25D366]/10 flex items-center justify-center shrink-0">
+                      <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-1 group-hover:text-[#25D366] transition-colors">
+                        WhatsApp
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Chat with us instantly
+                      </p>
+                    </div>
+                  </a>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card border-0">
                 <CardContent className="p-6 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
-                    <Phone className="w-5 h-5 text-gold" />
+                    <Mail className="w-5 h-5 text-gold" />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Phone</h3>
+                    <h3 className="font-medium mb-1">Email</h3>
                     <p className="text-sm text-muted-foreground">
-                      +91 98765 43210
+                      kshirsagarsamrudha@gmail.com
                     </p>
                   </div>
                 </CardContent>
@@ -80,9 +104,9 @@ export default function ContactPage() {
                     <MapPin className="w-5 h-5 text-gold" />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Studio</h3>
+                    <h3 className="font-medium mb-1">Location</h3>
                     <p className="text-sm text-muted-foreground">
-                      Mumbai, Maharashtra, India
+                      Talegaon Dabhade, Pune
                     </p>
                   </div>
                 </CardContent>
@@ -119,7 +143,6 @@ export default function ContactPage() {
                           onChange={(e) =>
                             setFormData({ ...formData, email: e.target.value })
                           }
-                          required
                         />
                       </div>
                     </div>
@@ -132,6 +155,7 @@ export default function ContactPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, phone: e.target.value })
                         }
+                        required
                       />
                     </div>
                     <div className="space-y-2">

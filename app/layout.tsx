@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/shared/Providers";
+import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 
 const cormorant = Cormorant({
   variable: "--font-heading",
@@ -20,14 +21,14 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "NovaVstra — Your Heritage, Reimagined",
   description:
-    "Transform vintage sarees into bespoke modern garments with AI-powered visualization. Upload your heritage saree and see it come alive as a contemporary design.",
+    "Transform vintage sarees into bespoke modern garments. Our expert artisans craft your dream design from heritage fabric.",
   keywords: [
     "vintage saree",
-    "AI fashion",
     "bespoke tailoring",
     "saree to dress",
     "heritage fashion",
     "custom garments",
+    "artisan made",
   ],
 };
 
@@ -40,10 +41,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${cormorant.variable} ${montserrat.variable} dark h-full antialiased`}
+      className={`${cormorant.variable} ${montserrat.variable} antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
+        <WhatsAppButton />
       </body>
     </html>
   );

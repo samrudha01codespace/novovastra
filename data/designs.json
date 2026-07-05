@@ -1,0 +1,38 @@
+[
+  {
+    "key": "gown",
+    "label": "Evening Gown",
+    "description": "Flowing, elegant, floor-length",
+    "image": "/designs/gown.jpg"
+  },
+  {
+    "key": "cocktail",
+    "label": "Cocktail Dress",
+    "description": "Sleek, modern, knee-length",
+    "image": "/designs/cocktail.jpg"
+  },
+  {
+    "key": "fusion",
+    "label": "Saree-Dress Fusion",
+    "description": "Best of both worlds",
+    "image": "/designs/fusion.jpg"
+  },
+  {
+    "key": "lehenga",
+    "label": "Modern Lehenga",
+    "description": "Contemporary traditional",
+    "image": "/designs/lehenga.jpg"
+  },
+  {
+    "key": "jumpsuit",
+    "label": "Silk Jumpsuit",
+    "description": "Bold, draped, statement",
+    "image": "/designs/jumpsuit.jpg"
+  },
+  {
+    "key": "shift",
+    "label": "Shift Dress",
+    "description": "Minimalist, clean lines",
+    "image": "/designs/shift.jpg"
+  }
+]

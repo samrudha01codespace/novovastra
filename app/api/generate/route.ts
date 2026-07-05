@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateDressDesign, type StyleKey } from "@/lib/ai";
+import { generateDressDesign, type StyleKey, type ModelKey, AI_MODELS } from "@/lib/ai";
 import { getServerUser } from "@/lib/auth-server";
-import { deductCredit } from "@/lib/credits";
+import { deductCredit, getCreditsForModel } from "@/lib/credits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { imageBase64, style } = await request.json();
+    const { imageBase64, style, model } = await request.json();
 
     if (!imageBase64 || !style) {
       return NextResponse.json(
@@ -35,15 +35,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const deduction = await deductCredit(user.uid, style);
+    const modelKey: ModelKey = (model as ModelKey) || "nano_banana";
+    const validModels = Object.keys(AI_MODELS);
+    if (!validModels.includes(modelKey)) {
+      return NextResponse.json(
+        { error: `Invalid model. Allowed: ${validModels.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const creditsNeeded = getCreditsForModel(modelKey);
+    const deduction = await deductCredit(user.uid, style, modelKey);
     if (!deduction.success) {
       return NextResponse.json(
-        { error: "Insufficient credits", remaining: deduction.remaining },
+        { error: "Insufficient credits", remaining: deduction.remaining, creditsNeeded },
         { status: 402 }
       );
     }
 
-    const response = await generateDressDesign(imageBase64, style as StyleKey);
+    const response = await generateDressDesign(imageBase64, style as StyleKey, modelKey);
 
     const parts = response.candidates?.[0]?.content?.parts || [];
     const generatedImages: { mimeType: string; data: string }[] = [];
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     if (generatedImages.length === 0) {
       const textParts = parts
-        .filter((p) => p.text)
+        .filter((p): p is typeof p & { text: string } => "text" in p && !!p.text)
         .map((p) => p.text)
         .join("\n");
 

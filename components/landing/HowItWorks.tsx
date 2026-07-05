@@ -1,29 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Upload, Sparkles, Shirt } from "lucide-react";
+import { Upload, Scissors, Shirt } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 
 const steps = [
   {
     icon: Upload,
-    title: "Upload Your Saree",
+    title: "Upload & Choose Design",
     description:
-      "Take a photo of your vintage saree and upload it to our platform. Our AI analyzes the fabric, patterns, and colors.",
+      "Take a photo of your vintage saree, upload it, and pick the dress style you love — gown, lehenga, fusion wear, and more.",
     step: "01",
   },
   {
-    icon: Sparkles,
-    title: "AI Generates Designs",
+    icon: Scissors,
+    title: "Discuss & Confirm",
     description:
-      "Our Nano Banana AI transforms your saree into 4-6 modern dress designs — gowns, lehengas, fusion wear, and more.",
+      "We review your saree and design, discuss details over WhatsApp, and confirm your order with a quote.",
     step: "02",
   },
   {
     icon: Shirt,
-    title: "Visualize in 3D",
+    title: "We Transform & Deliver",
     description:
-      "See your chosen design on a 3D model. Rotate, zoom, and examine every detail before committing.",
+      "Send us your saree via post. Our artisans craft your dream dress and deliver it back to your doorstep.",
     step: "03",
   },
 ];
@@ -50,7 +50,7 @@ export function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
             <GlassCard key={step.step} delay={index * 0.15} className="relative">
-              <div className="absolute top-4 right-4 font-[var(--font-heading)] text-5xl font-bold text-primary/5">
+              <div className="absolute top-4 right-4 font-[var(--font-heading)] text-5xl font-bold text-primary/20">
                 {step.step}
               </div>
               <div className="w-14 h-14 rounded-xl gold-gradient flex items-center justify-center mb-5">

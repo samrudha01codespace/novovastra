@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Priya Sharma",
+    "location": "Mumbai",
+    "image": "/testimonials/priya.jpg",
+    "quote": "My grandmother's 40-year-old Kanjivaram saree is now a stunning evening gown I wear to galas. NovaVstra preserved every intricate detail while making it completely modern.",
+    "rating": 5
+  },
+  {
+    "name": "Ananya Patel",
+    "location": "Ahmedabad",
+    "image": "/testimonials/ananya.jpg",
+    "quote": "I was nervous about transforming my mother's Banarasi silk, but the team understood exactly what I wanted. They created a lehenga that makes me cry every time I wear it.",
+    "rating": 5
+  },
+  {
+    "name": "Meera Krishnan",
+    "location": "Chennai",
+    "image": "/testimonials/meera.jpg",
+    "quote": "The consultation call sealed the deal. I could explain my vision and they understood perfectly. The final garment is even better than I imagined.",
+    "rating": 5
+  }
+]
