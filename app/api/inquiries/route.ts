@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    const r2BaseUrl = process.env.NEXT_PUBLIC_R2_BASE_URL || "";
+    const r2BaseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
     const sareeImageUrl = r2BaseUrl ? `${r2BaseUrl}/${fileKey}` : fileKey;
 
     // Build design image URL

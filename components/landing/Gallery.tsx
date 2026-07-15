@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { R2_BASE_URL } from "@/lib/config";
-import galleryFallback from "@/data/gallery.json";
 
 interface GalleryItem {
   before: string;
@@ -15,21 +14,39 @@ interface GalleryItem {
   afterImage: string;
 }
 
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http")) {
+    if (R2_BASE_URL && !url.startsWith(R2_BASE_URL)) {
+      const path = new URL(url).pathname;
+      return `${R2_BASE_URL}${path}`;
+    }
+    return url;
+  }
+  return `${R2_BASE_URL}${url.startsWith("/") ? url : `/${url}`}`;
+}
+
 export function Gallery() {
-  const [items, setItems] = useState<GalleryItem[]>(galleryFallback);
+  const [items, setItems] = useState<GalleryItem[]>([]);
 
   useEffect(() => {
     if (!R2_BASE_URL) return;
 
-    fetch(`${R2_BASE_URL}/gallery.json`)
+    fetch(`/r2/gallery.json`)
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error("Failed to fetch");
       })
-      .then((data: GalleryItem[]) => setItems(data))
-      .catch(() => {
-        // fallback already set
-      });
+      .then((data: GalleryItem[]) =>
+        setItems(
+          data.map((item) => ({
+            ...item,
+            beforeImage: resolveImageUrl(item.beforeImage),
+            afterImage: resolveImageUrl(item.afterImage),
+          }))
+        )
+      )
+      .catch((err) => console.error("Gallery fetch error:", err));
   }, []);
 
   return (
@@ -65,6 +82,7 @@ export function Gallery() {
                         src={item.beforeImage}
                         alt={item.before}
                         fill
+                        sizes="(max-width: 640px) 100vw, 50vw"
                         className="object-cover"
                       />
                     </div>
@@ -88,6 +106,7 @@ export function Gallery() {
                         src={item.afterImage}
                         alt={item.after}
                         fill
+                        sizes="(max-width: 640px) 100vw, 50vw"
                         className="object-cover"
                       />
                     </div>

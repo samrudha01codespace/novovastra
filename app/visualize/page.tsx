@@ -204,6 +204,7 @@ export default function VisualizePage() {
                             src={design.image}
                             alt={design.label}
                             fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
                             className="object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

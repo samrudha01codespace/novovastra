@@ -22,7 +22,7 @@ export function Testimonials() {
   useEffect(() => {
     if (!R2_BASE_URL) return;
 
-    fetch(`${R2_BASE_URL}/testimonials.json`)
+    fetch(`/r2/testimonials.json`)
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error("Failed to fetch");

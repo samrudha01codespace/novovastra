@@ -8,6 +8,7 @@ import { Footer } from "@/components/shared/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CheckCircle, Clock, AlertCircle, Phone } from "lucide-react";
+import { R2_BASE_URL } from "@/lib/config";
 
 interface RazorpayPaymentOptions {
   key: string;
@@ -35,6 +36,11 @@ interface PaymentData {
   designImageUrl: string;
   expiresAt: string;
   status: string;
+}
+
+function resolveImageUrl(url: string): string {
+  if (!url || url.startsWith("http")) return url;
+  return `${R2_BASE_URL}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 function PaymentPageContent() {
@@ -214,9 +220,10 @@ function PaymentPageContent() {
                   <div className="text-xs text-muted-foreground mb-1 text-center">Your Saree</div>
                   <div className="relative h-32 rounded-lg overflow-hidden">
                     <Image
-                      src={payment.sareeImageUrl}
+                      src={resolveImageUrl(payment.sareeImageUrl)}
                       alt="Saree"
                       fill
+                      sizes="128px"
                       className="object-cover"
                     />
                   </div>
@@ -232,9 +239,10 @@ function PaymentPageContent() {
                   <div className="text-xs text-muted-foreground mb-1 text-center">Design</div>
                   <div className="relative h-32 rounded-lg overflow-hidden">
                     <Image
-                      src={payment.designImageUrl}
+                      src={resolveImageUrl(payment.designImageUrl)}
                       alt="Design"
                       fill
+                      sizes="128px"
                       className="object-cover"
                     />
                   </div>

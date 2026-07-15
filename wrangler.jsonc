@@ -55,6 +55,8 @@
 		"NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "novavastra-ee441.firebasestorage.app",
 		"NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "910787922456",
 		"NEXT_PUBLIC_FIREBASE_APP_ID": "1:910787922456:web:9f6c7cc687ba0bd83e516d",
-		"NEXT_PUBLIC_FIREBASE_DATABASE_URL": "https://novavastra-ee441-default-rtdb.firebaseio.com"
+		"NEXT_PUBLIC_FIREBASE_DATABASE_URL": "https://novavastra-ee441-default-rtdb.firebaseio.com",
+		"NEXT_PUBLIC_R2_PUBLIC_URL": "https://pub-69d925864d0b4a39a1223b2185f89e5c.r2.dev",
+		"R2_BUCKET_NAME": "novavastra"
 	}
 }
