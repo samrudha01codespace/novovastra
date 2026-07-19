@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { r2Client } from "@/lib/r2-client";
+import { r2GetPresignedUrl } from "@/lib/r2-client";
 import { nanoid } from "nanoid";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -30,15 +28,7 @@ export async function POST(request: NextRequest) {
     const ext = fileName.split(".").pop();
     const fileKey = `uploads/${timestamp}/${fileId}.${ext}`;
 
-    const command = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: fileKey,
-      ContentType: fileType,
-    });
-
-    const presignedUrl = await getSignedUrl(r2Client, command, {
-      expiresIn: 300,
-    });
+    const presignedUrl = await r2GetPresignedUrl(fileKey, fileType, 300);
 
     return NextResponse.json({ presignedUrl, fileKey });
   } catch (error) {
