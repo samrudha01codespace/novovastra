@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, Download, RefreshCw } from "lucide-react";
+import { Heart, Download, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -15,6 +15,7 @@ interface Design {
 interface DesignGridProps {
   designs: Design[];
   onSelect: (design: Design) => void;
+  onView: (design: Design) => void;
   onRegenerate: () => void;
   selectedId?: string;
 }
@@ -25,12 +26,12 @@ const styleLabels: Record<string, string> = {
   cocktail: "Cocktail Dress",
   fusion: "Saree-Dress Fusion",
   jumpsuit: "Silk Jumpsuit",
-  shift: "Shift Dress",
 };
 
 export function DesignGrid({
   designs,
   onSelect,
+  onView,
   onRegenerate,
   selectedId,
 }: DesignGridProps) {
@@ -79,6 +80,21 @@ export function DesignGrid({
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            {/* View button - center on hover */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                size="sm"
+                className="gold-gradient text-white cursor-pointer px-4 gap-2 pointer-events-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(design);
+                }}
+              >
+                <Eye className="w-4 h-4" />
+                View
+              </Button>
+            </div>
 
             <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform">
               <div className="flex items-center justify-between">

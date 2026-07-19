@@ -1,40 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSessionToken } from "@/lib/auth-server";
+import { verifyFirebaseToken } from "@/lib/firebase-verify";
 
 export async function POST(request: NextRequest) {
   const { idToken } = await request.json();
 
   let uid: string;
   try {
-    // Verify Firebase ID token using the identitytoolkit API
-    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-    if (!apiKey) {
-      console.error("NEXT_PUBLIC_FIREBASE_API_KEY not configured");
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
-    }
-    
-    const res = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      }
-    );
-    
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Token verification failed:", res.status, errorData);
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    
-    const data = await res.json();
-    uid = data.users?.[0]?.localId;
-    
+    const decoded = await verifyFirebaseToken(idToken);
+    uid = decoded.sub || decoded.user_id || "";
     if (!uid) {
-      console.error("No UID in token response");
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: "No uid in token" }, { status: 401 });
     }
   } catch (error) {
     console.error("Token verification error:", error);

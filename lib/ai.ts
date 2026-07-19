@@ -1,139 +1,147 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 export const STYLE_PROMPTS = {
-  gown: "modern flowing evening gown",
-  lehenga: "contemporary lehenga with modern silhouette",
-  cocktail: "sleek cocktail dress",
-  fusion: "saree-dress fusion garment",
-  jumpsuit: "draped silk jumpsuit",
-  shift: "minimalist shift dress",
+  gown: "An elegant floor-length evening gown with flowing skirt, Indian textile patterns, rich colors",
+  lehenga: "A modern lehenga choli with embroidered blouse and voluminous flared skirt, traditional Indian patterns",
+  cocktail: "A chic cocktail dress, fitted bodice, knee-length, modern Indian fabric patterns",
+  fusion: "A saree-dress fusion garment combining traditional Indian draping with modern Western tailoring",
+  jumpsuit: "A wide-leg silk jumpsuit with cinched waist, deep V-neckline, Indian fabric patterns",
 } as const;
 
 export type StyleKey = keyof typeof STYLE_PROMPTS;
 
 export const AI_MODELS = {
-  flash: {
-    id: "imagen-4.0-fast-generate-001",
-    name: "Nano Banana Flash",
-    description: "Lightning fast generations",
+  standard: {
+    id: "@cf/black-forest-labs/flux-1-schnell",
+    name: "Standard",
+    description: "Fast generation, good quality",
     credits: 1,
   },
-  nano_banana: {
-    id: "imagen-4.0-generate-001",
-    name: "Nano Banana",
-    description: "Balanced speed and quality",
-    credits: 2,
-  },
-  nano_banana_pro: {
-    id: "imagen-4.0-ultra-generate-001",
-    name: "Nano Banana Pro",
-    description: "Premium 4K ultra quality",
-    credits: 4,
+  premium: {
+    id: "@cf/leonardo/lucid-origin",
+    name: "Premium",
+    description: "Best quality, detailed output",
+    credits: 3,
   },
 } as const;
 
 export type ModelKey = keyof typeof AI_MODELS;
 
-async function getGoogleAuthToken() {
-  // In a real app, you would use google-auth-library here:
-  // const { GoogleAuth } = require('google-auth-library');
-  // const auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
-  // const client = await auth.getClient();
-  // const token = await client.getAccessToken();
-  // return token.token;
-  return process.env.GOOGLE_CLOUD_ACCESS_TOKEN || "mock-token";
-}
-
 export async function generateDressDesign(
   sareeImageBase64: string,
-  styleKey: StyleKey,
-  modelKey: ModelKey = "nano_banana"
+  styleKey: StyleKey | "custom",
+  customPrompt?: string,
+  modelKey: ModelKey = "standard"
 ) {
-  const modelConfig = AI_MODELS[modelKey];
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-  const location = process.env.GOOGLE_CLOUD_LOCATION || "us-central1";
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
 
-  const prompt = `A photorealistic fashion editorial of a beautiful woman wearing a ${STYLE_PROMPTS[styleKey]}. The dress is made from a traditional vintage Indian saree fabric. High quality, 4k, studio lighting, highly detailed.`;
-
-  const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelConfig.id}:predict`;
-  const token = await getGoogleAuthToken();
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      instances: [
-        {
-          prompt: prompt,
-          // Note: If you want to do image-to-image translation to preserve the EXACT saree,
-          // you would include the base image here depending on Imagen's edit/control capabilities.
-          // For Imagen text-to-image generation:
-        }
-      ],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: "3:4"
-      }
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Vertex AI Error:", errorText);
-    throw new Error(`Failed to generate image: ${response.status} ${response.statusText}`);
+  if (!accountId || !apiToken) {
+    throw new Error("Cloudflare AI credentials not configured.");
   }
 
-  const data = await response.json();
-  
-  // Imagen returns predictions[].bytesBase64Encoded
-  const base64Image = data.predictions?.[0]?.bytesBase64Encoded;
+  const model = AI_MODELS[modelKey];
 
-  if (!base64Image) {
-    throw new Error("No image returned from Imagen API");
+  let styleDescription: string;
+
+  if (styleKey === "custom" && customPrompt) {
+    styleDescription = customPrompt;
+  } else {
+    styleDescription = STYLE_PROMPTS[styleKey as StyleKey] || "a beautiful Indian dress";
   }
 
-  // Format the response to match what the API route expects (mimicking the previous Gemini structure)
-  return {
-    candidates: [
-      {
-        content: {
-          parts: [
-            {
-              inlineData: {
-                mimeType: "image/png",
-                data: base64Image
-              }
-            }
-          ]
-        }
+  const prompt = `Generate a fashion design photo of ${styleDescription}. The dress should be made from Indian saree fabric with intricate patterns and vibrant colors. Professional fashion photography, studio lighting, white background, high quality, detailed textile patterns.`;
+
+  console.log(`Generating dress design with ${model.name} model`);
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model.id}`;
+
+  // Retry logic for rate limits
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        num_steps: modelKey === "premium" ? 20 : 4,
+        guidance: 3.5,
+        width: 1024,
+        height: 1024,
+      }),
+    });
+
+    if (response.status === 429) {
+      const waitTime = attempt * 10000;
+      console.log(`Rate limited, waiting ${waitTime / 1000}s (attempt ${attempt}/3)`);
+      await new Promise((r) => setTimeout(r, waitTime));
+      continue;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Cloudflare AI Error:", errorText);
+      throw new Error(`Failed to generate design: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.errors?.length) {
+      throw new Error(data.errors[0].message || "Cloudflare AI error");
+    }
+
+    const result = data.result;
+
+    if (result?.image) {
+      const imageData = result.image;
+
+      if (imageData.startsWith("data:")) {
+        const base64 = imageData.split(",")[1];
+        const mimeType = imageData.split(";")[0].split(":")[1];
+        return { imageBase64: base64, mimeType };
       }
-    ]
-  };
+
+      if (imageData.startsWith("/9j/") || imageData.startsWith("iVBOR") || imageData.startsWith("UklGR")) {
+        let mimeType = "image/jpeg";
+        if (imageData.startsWith("iVBOR")) mimeType = "image/png";
+        if (imageData.startsWith("UklGR")) mimeType = "image/webp";
+        return { imageBase64: imageData, mimeType };
+      }
+
+      const imgResponse = await fetch(imageData);
+      if (!imgResponse.ok) {
+        throw new Error("Failed to fetch generated image");
+      }
+      const buffer = await imgResponse.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString("base64");
+      const contentType = imgResponse.headers.get("content-type") || "image/jpeg";
+      return { imageBase64: base64, mimeType: contentType };
+    }
+
+    throw new Error("Unexpected response format from AI model");
+  }
+
+  throw new Error("Rate limit exceeded after retries. Please wait a minute and try again.");
 }
 
 export async function generateMultipleDesigns(
   sareeImageBase64: string,
-  styles: StyleKey[] = ["gown", "cocktail", "fusion", "lehenga"],
-  modelKey: ModelKey = "nano_banana"
+  styles: StyleKey[] = ["gown", "cocktail", "fusion", "lehenga"]
 ) {
   const results: {
     style: string;
     success: boolean;
-    data: Awaited<ReturnType<typeof generateDressDesign>> | null;
+    imageBase64: string | null;
+    mimeType: string | null;
     error: unknown;
   }[] = [];
 
   for (const style of styles) {
     try {
-      const data = await generateDressDesign(sareeImageBase64, style, modelKey);
-      results.push({ style, success: true, data, error: null });
+      const result = await generateDressDesign(sareeImageBase64, style);
+      results.push({ style, success: true, imageBase64: result.imageBase64, mimeType: result.mimeType, error: null });
     } catch (error) {
-      results.push({ style, success: false, data: null, error });
+      results.push({ style, success: false, imageBase64: null, mimeType: null, error });
     }
   }
 

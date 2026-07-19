@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 interface UploadZoneProps {
   onUpload: (file: File, preview: string) => void;
   disabled?: boolean;
+  label?: string;
+  sublabel?: string;
 }
 
-export function UploadZone({ onUpload, disabled }: UploadZoneProps) {
+export function UploadZone({ onUpload, disabled, label, sublabel }: UploadZoneProps) {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -105,10 +107,10 @@ export function UploadZone({ onUpload, disabled }: UploadZoneProps) {
         </div>
         <div>
           <p className="text-lg font-medium">
-            {dragActive ? "Drop your saree here" : "Upload your vintage saree"}
+            {dragActive ? (label ? `Drop your ${label} here` : "Drop your image here") : (label || "Upload your vintage saree")}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Drag & drop or click to browse. JPEG, PNG, WebP up to 10MB.
+            {sublabel || "Drag & drop or click to browse. JPEG, PNG, WebP up to 10MB."}
           </p>
         </div>
         <Button variant="outline" size="sm" className="cursor-pointer">

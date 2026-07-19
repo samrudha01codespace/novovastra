@@ -3,16 +3,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, Zap, Crown } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { CREDIT_PLANS } from "@/lib/razorpay";
-import { AI_MODELS } from "@/lib/ai";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
-
-const MODEL_ICONS = {
-  imagen_fast: Zap,
-  nano_banana: Sparkles,
-  nano_banana_pro: Crown,
-};
 
 export function Pricing() {
   const [buyOpen, setBuyOpen] = useState(false);
@@ -24,76 +17,56 @@ export function Pricing() {
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4">Pricing</Badge>
           <h2 className="font-[var(--font-heading)] text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Choose Your <span className="text-gradient">AI Model</span>
+            Simple <span className="text-gradient">Credit System</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Different models for different needs. Pick the quality level that fits your vision.
+            One credit per AI design. Buy credits once, use them anytime.
           </p>
         </div>
 
-        {/* Model Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
-          {(Object.entries(AI_MODELS) as [string, typeof AI_MODELS[keyof typeof AI_MODELS]][]).map(([key, model], i) => {
-            const Icon = MODEL_ICONS[key as keyof typeof MODEL_ICONS] || Sparkles;
-            const isPopular = i === 1;
-
-            return (
-              <div
-                key={key}
-                className={`relative rounded-2xl p-[1px] ${
-                  isPopular ? "gold-gradient" : "bg-border"
-                }`}
-              >
-                {isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="gold-gradient text-white text-xs px-3">Most Popular</Badge>
-                  </div>
-                )}
-                <div className={`glass-card rounded-2xl p-6 h-full ${isPopular ? "ring-1 ring-gold/20" : ""}`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isPopular ? "gold-gradient" : "bg-muted"
-                    }`}>
-                      <Icon className={`w-5 h-5 ${isPopular ? "text-white" : "text-gold"}`} />
-                    </div>
-                    <div>
-                      <h3 className="font-[var(--font-heading)] text-lg font-bold">{model.name}</h3>
-                      <p className="text-xs text-muted-foreground">{model.description}</p>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-gold">{model.credits}</span>
-                      <span className="text-sm text-muted-foreground">credit{model.credits > 1 ? "s" : ""}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">per generation</p>
-                  </div>
-
-                  <ul className="space-y-2.5 mb-6">
-                    {[
-                      "Photorealistic output",
-                      key === "nano_banana_pro" ? "4K resolution" : "1K resolution",
-                      key === "imagen_fast" ? "Fastest generation" : "Standard speed",
-                    ].map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-gold shrink-0" />
-                        <span className="text-sm text-muted-foreground">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    onClick={() => setBuyOpen(true)}
-                    className={`w-full cursor-pointer ${isPopular ? "gold-gradient text-white" : ""}`}
-                    variant={isPopular ? "default" : "outline"}
-                  >
-                    Get Started
-                  </Button>
+        {/* AI Model Card */}
+        <div className="max-w-md mx-auto mb-16">
+          <div className="relative rounded-2xl p-[1px] gold-gradient">
+            <div className="glass-card rounded-2xl p-6 h-full ring-1 ring-gold/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-[var(--font-heading)] text-lg font-bold">FLUX.1 Schnell</h3>
+                  <p className="text-xs text-muted-foreground">Fast AI image generation</p>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="mb-6">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-gold">1</span>
+                  <span className="text-sm text-muted-foreground">credit</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">per generation</p>
+              </div>
+
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  "Photorealistic output",
+                  "Fast generation",
+                  "Powered by Cloudflare AI",
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-gold shrink-0" />
+                    <span className="text-sm text-muted-foreground">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                onClick={() => setBuyOpen(true)}
+                className="w-full gold-gradient text-white cursor-pointer"
+              >
+                Get Credits
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Credit Packs */}

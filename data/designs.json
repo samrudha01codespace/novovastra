@@ -28,11 +28,5 @@
     "label": "Silk Jumpsuit",
     "description": "Bold, draped, statement",
     "image": "/designs/jumpsuit.jpg"
-  },
-  {
-    "key": "shift",
-    "label": "Shift Dress",
-    "description": "Minimalist, clean lines",
-    "image": "/designs/shift.jpg"
   }
 ]

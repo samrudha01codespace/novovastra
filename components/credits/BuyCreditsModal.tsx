@@ -71,6 +71,7 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ planId }),
       });
 
@@ -127,7 +128,7 @@ export function BuyCreditsModal({ open, onOpenChange }: BuyCreditsModalProps) {
             Buy Credits
           </DialogTitle>
         <DialogDescription>
-          Credits are used per generation. 1-4 credits per design depending on AI model quality.
+          Credits are used per generation. 1 credit per design.
         </DialogDescription>
         </DialogHeader>
 

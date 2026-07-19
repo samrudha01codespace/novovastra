@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDressDesign, type StyleKey, type ModelKey, AI_MODELS } from "@/lib/ai";
 import { getServerUser } from "@/lib/auth-server";
-import { deductCredit, getCreditsForModel } from "@/lib/credits";
+import { deductCredit } from "@/lib/credits";
+
+const VALID_STYLES: StyleKey[] = ["gown", "lehenga", "cocktail", "fusion", "jumpsuit"];
+const VALID_MODELS: ModelKey[] = ["standard", "premium"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,97 +13,65 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { imageBase64, style, model } = await request.json();
+    const { sareeImageBase64, style, customPrompt, model = "standard" } = await request.json();
 
-    if (!imageBase64 || !style) {
+    if (!sareeImageBase64) {
+      return NextResponse.json({ error: "Missing sareeImageBase64" }, { status: 400 });
+    }
+
+    if (!style) {
+      return NextResponse.json({ error: "Missing style" }, { status: 400 });
+    }
+
+    if (!VALID_MODELS.includes(model as ModelKey)) {
       return NextResponse.json(
-        { error: "Missing imageBase64 or style" },
+        { error: `Invalid model. Allowed: ${VALID_MODELS.join(", ")}` },
         { status: 400 }
       );
     }
 
-    const validStyles: StyleKey[] = [
-      "gown",
-      "lehenga",
-      "cocktail",
-      "fusion",
-      "jumpsuit",
-      "shift",
-    ];
+    const isCustom = style === "custom";
+    const isPredefined = VALID_STYLES.includes(style as StyleKey);
 
-    if (!validStyles.includes(style as StyleKey)) {
+    if (!isCustom && !isPredefined) {
       return NextResponse.json(
-        { error: `Invalid style. Allowed: ${validStyles.join(", ")}` },
+        { error: `Invalid style. Allowed: ${VALID_STYLES.join(", ")}, or custom` },
         { status: 400 }
       );
     }
 
-    const modelKey: ModelKey = (model as ModelKey) || "nano_banana";
-    const validModels = Object.keys(AI_MODELS);
-    if (!validModels.includes(modelKey)) {
-      return NextResponse.json(
-        { error: `Invalid model. Allowed: ${validModels.join(", ")}` },
-        { status: 400 }
-      );
+    if (isCustom && !customPrompt) {
+      return NextResponse.json({ error: "Missing customPrompt for custom style" }, { status: 400 });
     }
 
-    const creditsNeeded = getCreditsForModel(modelKey);
-    const deduction = await deductCredit(user.uid, style, modelKey);
+    const selectedModel = AI_MODELS[model as ModelKey];
+    const deduction = await deductCredit(user.uid, style, model as ModelKey);
     if (!deduction.success) {
       return NextResponse.json(
-        { error: "Insufficient credits", remaining: deduction.remaining, creditsNeeded },
+        { error: "Insufficient credits", remaining: deduction.remaining, creditsNeeded: selectedModel.credits },
         { status: 402 }
       );
     }
 
-    const response = await generateDressDesign(imageBase64, style as StyleKey, modelKey);
-
-    const parts = response.candidates?.[0]?.content?.parts || [];
-    const generatedImages: { mimeType: string; data: string }[] = [];
-
-    for (const part of parts) {
-      if (part.inlineData && part.inlineData.mimeType?.startsWith("image/")) {
-        generatedImages.push({
-          mimeType: part.inlineData.mimeType,
-          data: part.inlineData.data,
-        });
-      }
-    }
-
-    if (generatedImages.length === 0) {
-      const textParts = parts
-        .filter((p): p is typeof p & { text: string } => "text" in p && !!p.text)
-        .map((p) => p.text)
-        .join("\n");
-
-      console.log("No images returned. Text response:", textParts);
-
-      return NextResponse.json(
-        {
-          error:
-            "The model returned text instead of an image. This may be due to content policy or the model not supporting image generation with this input.",
-          textResponse: textParts,
-          remaining: deduction.remaining,
-        },
-        { status: 422 }
-      );
-    }
+    const result = await generateDressDesign(
+      sareeImageBase64,
+      isCustom ? "custom" : (style as StyleKey),
+      customPrompt,
+      model as ModelKey
+    );
 
     return NextResponse.json({
-      images: generatedImages,
+      images: [{ mimeType: result.mimeType, data: result.imageBase64 }],
       remaining: deduction.remaining,
     });
   } catch (error) {
     console.error("Generation error:", error);
 
-    const message =
-      error instanceof Error ? error.message : "Failed to generate design";
+    const message = error instanceof Error ? error.message : "Failed to generate design";
 
     if (message.includes("429")) {
       return NextResponse.json(
-        {
-          error: "Rate limit exceeded. Please wait a minute and try again.",
-        },
+        { error: "Rate limit exceeded. Please wait a minute and try again." },
         { status: 429 }
       );
     }

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LogIn, LogOut, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { getAuth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -17,6 +21,18 @@ const WHATSAPP_NUMBER = "919558397481";
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      await fetch("/api/auth/session", { method: "DELETE" });
+      window.location.href = "/";
+    } catch {
+      // silent
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground">
@@ -54,6 +70,30 @@ export function Navbar() {
               <Phone className="w-4 h-4" />
               <span className="hidden lg:inline">+91 95583 97481</span>
             </a>
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary-foreground/60" />
+            ) : user ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-primary-foreground/60 hidden lg:inline">
+                  {user.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
 
           <button
@@ -92,6 +132,22 @@ export function Navbar() {
               >
                 WhatsApp Us
               </a>
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-primary-foreground/80 hover:bg-primary-foreground/10 transition-colors cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-3 rounded-lg text-sm font-medium text-gold hover:bg-primary-foreground/10 transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </div>

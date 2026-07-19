@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
 
-interface Testimonial {
+interface FeedbackItem {
   id: string;
   name: string;
   quote: string;
   rating: number;
 }
 
-export function Testimonials() {
-  const [items, setItems] = useState<Testimonial[]>([]);
+export function StoriesOfTransformation() {
+  const [items, setItems] = useState<FeedbackItem[]>([]);
 
   useEffect(() => {
     fetch("/api/feedback")
@@ -21,11 +21,11 @@ export function Testimonials() {
         if (res.ok) return res.json();
         throw new Error("Failed to fetch");
       })
-      .then((data: Testimonial[]) => setItems(data))
+      .then((data: FeedbackItem[]) => setItems(data))
       .catch(() => {});
   }, []);
 
-  if (items.length === 0) return null;
+  if (items.length < 3) return null;
 
   return (
     <section className="py-24 md:py-32">

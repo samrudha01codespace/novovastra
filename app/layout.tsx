@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant, Montserrat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/shared/Providers";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
@@ -43,7 +44,36 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${cormorant.variable} ${montserrat.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        <Script
+          id="dark-reader-compat"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var DR_ATTRS = ['data-darkreader-inline-stroke', 'data-darkreader-inline-color', 'data-darkreader-inline-bg', 'data-darkreader-inline-fill'];
+                function strip(el) {
+                  DR_ATTRS.forEach(function(a) { el.removeAttribute(a); });
+                  if (!el.style) return;
+                  var css = el.style.cssText;
+                  if (!css) return;
+                  css = css.replace(/--darkreader-inline-[^:]+:[^;]+;?/g, '');
+                  el.style.cssText = css;
+                }
+                document.querySelectorAll(DR_ATTRS.map(function(a) { return '[' + a + ']'; }).join(',')).forEach(strip);
+                new MutationObserver(function(mutations) {
+                  mutations.forEach(function(m) {
+                    if (m.type === 'attributes' && m.attributeName.indexOf('data-darkreader-inline-') === 0) {
+                      strip(m.target);
+                    }
+                  });
+                }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: DR_ATTRS });
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>{children}</Providers>
         <WhatsAppButton />
       </body>

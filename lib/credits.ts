@@ -1,14 +1,9 @@
 import { getRTDB } from "./firebase";
 import { ref, get, set, runTransaction } from "firebase/database";
+import { AI_MODELS, type ModelKey } from "./ai";
 
-export const MODEL_CREDITS: Record<string, number> = {
-  imagen_fast: 1,
-  nano_banana: 2,
-  nano_banana_pro: 4,
-};
-
-export function getCreditsForModel(model: string): number {
-  return MODEL_CREDITS[model] ?? 2;
+export function getCreditsForModel(model: ModelKey): number {
+  return AI_MODELS[model]?.credits ?? 1;
 }
 
 export async function getUserCredits(uid: string): Promise<number> {
@@ -22,7 +17,7 @@ export async function getUserCredits(uid: string): Promise<number> {
   }
 }
 
-export async function deductCredit(uid: string, style: string, model: string = "nano_banana"): Promise<{ success: boolean; remaining: number }> {
+export async function deductCredit(uid: string, style: string, model: ModelKey = "standard"): Promise<{ success: boolean; remaining: number }> {
   const db = getRTDB();
   const creditsRef = ref(db, `users/${uid}/credits`);
   const creditsNeeded = getCreditsForModel(model);
